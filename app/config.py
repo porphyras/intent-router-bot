@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     admin_password: str = 'change-me'
     store_name: str = 'GreenLeaf Assistant'
     store_address: str = 'Город Новосибирск, Центральный район, ул. Примерная 1.'
-    store_schedule: str = 'Вт-Суб с 13:00 до 20:00. Воскресенье и понедельник — выходной.'
+    store_schedule: str = 'Вт-Суб с 14:00 до 19:00. Воскресенье и понедельник — выходной.'
     store_contacts: str = '+7 000 000-00-00 Manager'
     manager_chat_id: int = 0
     manager_topic_id: int | None = None
