@@ -1,6 +1,6 @@
 # ShopMate — intent-routing Telegram assistant for a retail store
 
-![tests](https://github.com/puoku/intent-router-bot/actions/workflows/test.yml/badge.svg)
+![tests](https://github.com/porphyras/intent-router-bot/actions/workflows/test.yml/badge.svg)
 
 A Telegram bot plus a web admin panel for a small shop. It answers FAQs, searches the catalog,
 and takes orders and reservations. Free-form messages go to an LLM that classifies the intent
