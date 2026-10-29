@@ -57,7 +57,7 @@ async def lifespan(app: FastAPI):
         await bot.session.close()
 
 
-app = FastAPI(title='GreenLeaf Assistant', lifespan=lifespan)
+app = FastAPI(title='ShopMate', lifespan=lifespan)
 app.include_router(admin_router, prefix='/admin', tags=['admin'])
 
 

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{ title or 'GreenLeaf Admin' }}</title>
+  <title>{{ title or 'ShopMate Admin' }}</title>
   <style>
     :root {
       --primary: #4f46e5;
@@ -179,7 +179,7 @@
 <body>
 {% set path = request.url.path %}
 <header>
-  <span class="brand">🌿 GreenLeaf Admin</span>
+  <span class="brand">🛒 ShopMate Admin</span>
   <nav>
     <a href="/admin/" class="{% if path == '/admin/' or path == '/admin' %}active{% endif %}">Главная</a>
     <a href="/admin/products" class="{% if '/admin/products' in path %}active{% endif %}">Товары</a>

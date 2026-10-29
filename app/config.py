@@ -6,7 +6,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file='.env', env_file_encoding='utf-8', extra='ignore')
 
     bot_token: str
-    database_url: str = 'sqlite+aiosqlite:///./greenleaf.db'
+    database_url: str = 'sqlite+aiosqlite:///./shopmate.db'
     openai_api_key: str | None = None
     openai_base_url: str = 'https://openrouter.ai/api/v1'
     openai_model: str = 'nvidia/nemotron-3-super-120b-a12b:free'

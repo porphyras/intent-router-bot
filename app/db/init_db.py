@@ -7,25 +7,20 @@ from app.db.session import SessionLocal, engine
 
 
 PRODUCTS = [
-    {'name': 'YIBEILE Детская зубная паста с тройным экстрактом фруктов', 'sku': '4439', 'price_partner': 273, 'pv': 1, 'quantity': 19, 'category': 'Гигиена', 'aliases': 'детская паста,yibeile,зубная паста,фруктовая паста'},
-    {'name': 'CARICH Fragrant Pearl - Освежитель воздуха "Ароматная жемчужина"', 'sku': '4042', 'price_partner': 424, 'pv': 2, 'quantity': 9, 'category': 'Дом', 'aliases': 'освежитель воздуха,carich,ароматная жемчужина'},
-    {'name': 'MARVISIA Очки', 'sku': '4506', 'price_partner': 1925, 'pv': 7, 'quantity': 38, 'category': 'Аксессуары', 'aliases': 'очки,marvisia'},
-    {'name': 'BULE POINT детская зубная паста', 'sku': '4236', 'price_partner': 154, 'pv': 0.5, 'quantity': 41, 'category': 'Гигиена', 'aliases': 'bule point,детская паста,зубная паста'},
-    {'name': 'Калиши ополаскиватель для полости рта 300мл', 'sku': '5744', 'price_partner': 318, 'pv': 0.2, 'quantity': 10, 'category': 'Гигиена', 'aliases': 'калиши,kali shi,ополаскиватель,полость рта'},
-    {'name': 'YIBEILE Детская антибактериальная зубная щетка (2 шт. в упаковке)', 'sku': '5634', 'price_partner': 149, 'pv': 0.2, 'quantity': 45, 'category': 'Гигиена', 'aliases': 'зубная щетка,щетка детская,yibeile'},
-    {'name': 'YIBEILE Детская зубная паста со вкусом апельсина', 'sku': '5841', 'price_partner': 153, 'pv': 0.2, 'quantity': 24, 'category': 'Гигиена', 'aliases': 'апельсиновая паста,детская паста,yibeile'},
-    {'name': 'Nilrich зеленый чай с жасмином', 'sku': '3919', 'price_partner': 439, 'pv': 0.2, 'quantity': 16, 'category': 'Напитки', 'aliases': 'nilrich,зеленый чай,жасмин'},
-    {'name': 'Nilrich черный чай с розой', 'sku': '5106', 'price_partner': 439, 'pv': 0.2, 'quantity': 18, 'category': 'Напитки', 'aliases': 'nilrich,черный чай,роза'},
-    {'name': 'iLiFE Увлажняющий гель с алоэ вера 180 г', 'sku': '5528', 'price_partner': 385, 'pv': 0.7, 'quantity': 25, 'category': 'Уход', 'aliases': 'aloe vera,алоэ вера,гель,ilife'},
-    {'name': 'iLiFE Розовый гель алоэ вера, 180г', 'sku': '4458', 'price_partner': 385, 'pv': 0.7, 'quantity': 56, 'category': 'Уход', 'aliases': 'розовый гель,алоэ вера,ilife'},
-    {'name': 'CARICH Shea butter moisturizing soap - Увлажняющее мыло с маслом ши', 'sku': '5284', 'price_partner': 144, 'pv': 0.2, 'quantity': 121, 'category': 'Уход', 'aliases': 'мыло,масло ши,carich,shea butter'},
-    {'name': 'Carich гель для фиксации волос 80мл', 'sku': '3876', 'price_partner': 182, 'pv': 0.1, 'quantity': 17, 'category': 'Уход', 'aliases': 'гель для волос,фиксация волос,carich'},
-    {'name': 'iLiFE Подтягивающие детские трусики 28 шт. (размер XL)', 'sku': '5509', 'price_partner': 1165, 'pv': 0.5, 'quantity': 7, 'category': 'Дети', 'aliases': 'pull ups,xl,трусики,pampers,подгузники,ilife'},
-    {'name': 'iLiFE Подтягивающие детские трусики 32 шт. (размер L)', 'sku': '4115', 'price_partner': 1209, 'pv': 0.5, 'quantity': 8, 'category': 'Дети', 'aliases': 'pull ups,l,трусики,pampers,подгузники,ilife'},
-    {'name': 'iLiFE Подтягивающие детские трусики 38 шт. (размер M)', 'sku': '4262', 'price_partner': 1275, 'pv': 0.5, 'quantity': 8, 'category': 'Дети', 'aliases': 'pull ups,m,трусики,pampers,подгузники,ilife'},
-    {'name': 'SEALUXE Твердые духи (Роза)', 'sku': '4922', 'price_partner': 439, 'pv': 0.5, 'quantity': 33, 'category': 'Парфюм', 'aliases': 'духи,роза,sealuxe,твердые духи'},
-    {'name': 'CARICH Освежающий антибактериальный спрей 30 мл', 'sku': '4746', 'price_partner': 319, 'pv': 0.2, 'quantity': 92, 'category': 'Гигиена', 'aliases': 'спрей антибактериальный,освежающий спрей,carich'},
-    {'name': 'Ультратонкая зубная нить Kali Shi Fresh Clean из полимера', 'sku': '4842', 'price_partner': 87, 'pv': 0.2, 'quantity': 7, 'category': 'Гигиена', 'aliases': 'зубная нить,kali shi,нить для зубов,fresh clean'},
+    {'name': 'Детская зубная паста со вкусом клубники', 'sku': '1001', 'price_partner': 150, 'pv': 0.2, 'quantity': 25, 'category': 'Гигиена', 'aliases': 'детская паста,зубная паста,клубника'},
+    {'name': 'Зубная щётка мягкая (2 шт.)', 'sku': '1002', 'price_partner': 120, 'pv': 0.2, 'quantity': 40, 'category': 'Гигиена', 'aliases': 'зубная щетка,щетка,мягкая щетка'},
+    {'name': 'Ополаскиватель для полости рта 300 мл', 'sku': '1003', 'price_partner': 290, 'pv': 0.2, 'quantity': 12, 'category': 'Гигиена', 'aliases': 'ополаскиватель,полость рта'},
+    {'name': 'Зубная нить мятная', 'sku': '1004', 'price_partner': 90, 'pv': 0.1, 'quantity': 30, 'category': 'Гигиена', 'aliases': 'зубная нить,нить для зубов'},
+    {'name': 'Освежитель воздуха «Лаванда»', 'sku': '2001', 'price_partner': 380, 'pv': 1, 'quantity': 9, 'category': 'Дом', 'aliases': 'освежитель воздуха,лаванда'},
+    {'name': 'Зелёный чай с жасмином', 'sku': '3001', 'price_partner': 420, 'pv': 0.2, 'quantity': 16, 'category': 'Напитки', 'aliases': 'зеленый чай,жасмин,чай'},
+    {'name': 'Чёрный чай с бергамотом', 'sku': '3002', 'price_partner': 410, 'pv': 0.2, 'quantity': 18, 'category': 'Напитки', 'aliases': 'черный чай,бергамот,чай'},
+    {'name': 'Увлажняющий гель с алоэ вера 180 г', 'sku': '4001', 'price_partner': 360, 'pv': 0.7, 'quantity': 25, 'category': 'Уход', 'aliases': 'алоэ вера,aloe vera,гель'},
+    {'name': 'Мыло с маслом ши', 'sku': '4002', 'price_partner': 140, 'pv': 0.2, 'quantity': 100, 'category': 'Уход', 'aliases': 'мыло,масло ши,shea butter'},
+    {'name': 'Гель для укладки волос 80 мл', 'sku': '4003', 'price_partner': 180, 'pv': 0.1, 'quantity': 17, 'category': 'Уход', 'aliases': 'гель для волос,укладка'},
+    {'name': 'Детские трусики-подгузники, размер L (32 шт.)', 'sku': '5001', 'price_partner': 1200, 'pv': 0.5, 'quantity': 8, 'category': 'Дети', 'aliases': 'подгузники,трусики,pampers,l'},
+    {'name': 'Детские трусики-подгузники, размер M (38 шт.)', 'sku': '5002', 'price_partner': 1250, 'pv': 0.5, 'quantity': 8, 'category': 'Дети', 'aliases': 'подгузники,трусики,pampers,m'},
+    {'name': 'Солнцезащитные очки', 'sku': '6001', 'price_partner': 1900, 'pv': 7, 'quantity': 20, 'category': 'Аксессуары', 'aliases': 'очки,солнцезащитные очки'},
+    {'name': 'Твёрдые духи «Роза»', 'sku': '7001', 'price_partner': 430, 'pv': 0.5, 'quantity': 33, 'category': 'Парфюм', 'aliases': 'духи,роза,твердые духи'},
 ]
 
 
@@ -48,7 +43,7 @@ FAQS = [
     {
         'intent': 'address',
         'question_patterns': 'где вы находитесь;адрес;где находится сц;как добраться;сервисный центр',
-        'answer_text': 'Мы находимся по адресу: Город Новосибирск, Центральный район, ул. Примерная 1.',
+        'answer_text': 'Мы находимся по адресу: г. Новосибирск, ул. Примерная, 1 (демо-адрес).',
     },
     {
         'intent': 'schedule',
@@ -83,7 +78,7 @@ FAQS = [
     {
         'intent': 'contacts',
         'question_patterns': 'контакты;телефон;номер;как связаться',
-        'answer_text': 'Контакт для связи: +7 000 000-00-00, Manager.',
+        'answer_text': 'Контакт для связи: +7 000 000-00-00 (демо-номер).',
     },
 ]
 

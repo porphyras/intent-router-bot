@@ -1,174 +1,116 @@
-# GreenLeaf Assistant
+# ShopMate — intent-routing Telegram assistant for a retail store
 
-![tests](https://github.com/puoku/GreenLeaf_Assistant/actions/workflows/test.yml/badge.svg)
+![tests](https://github.com/puoku/intent-router-bot/actions/workflows/test.yml/badge.svg)
 
-Telegram-бот для розничного магазина в Новосибирске. Принимает заказы и брони, отвечает на типовые вопросы и хранит каталог товаров с возможностью править его через веб-админку.
+A Telegram bot plus a web admin panel for a small shop. It answers FAQs, searches the catalog,
+and takes orders and reservations. Free-form messages go to an LLM that classifies the intent
+and extracts order items. When the LLM is slow or unavailable, the bot falls back to rule-based handling.
 
-Код в папке `greenleaf_bot_project_v2`.
+Originally built for a real store; the catalog, address and contacts in this repository are demo data.
 
-## Что делает бот
+## Features
 
-В личке клиента и в общем клиентском чате:
+- **FAQ answers.** Address, opening hours, delivery, payment, returns, pickup, contacts. Fuzzy matching via `rapidfuzz`.
+- **Catalog search.**
+  - One match: a product card with price and stock.
+  - Several matches: a short list to choose from.
+- **Orders and reservations.**
+  - Step-by-step dialog (FSM).
+  - Or a single free-text message, e.g. "can I reserve 2 toothpastes until Wednesday?", parsed by the LLM.
+- **Two-step confirmation.** The customer confirms the request in Telegram. A manager then confirms stock in the admin panel. Stock changes only after the manager's confirmation.
+- **Admin panel** (FastAPI + Jinja2, HTTP Basic Auth).
+  - Orders and reservations with statuses.
+  - Product and FAQ editing.
+  - CSV catalog import: preview, insert-only or upsert, with an import log.
 
-- Отвечает на FAQ — адрес, график работы, доставка, оплата, гарантия, возврат, самовывоз, контакты, приветствие.
-- Ищет товары по каталогу: одно совпадение — карточка с ценой и остатком, несколько — список из 2-5 вариантов на выбор.
-- Принимает заказ через пошаговый диалог: товары → способ получения → адрес (если доставка) → комментарий.
-- Принимает бронь — либо тем же пошаговым диалогом, либо одним сообщением вида «можно у вас забронировать до среды 2 пасты YIBEILE?». Свободные формулировки разбирает LLM-классификатор.
-- Понимает команду `/cancel` и ключевые слова отмены («отмена», «стоп», «не подходит», ...) — выход из любого активного диалога.
-- Никогда не списывает остатки автоматически. Это делает менеджер в админке.
-
-Каждая заявка проходит через два подтверждения: сначала клиент в Telegram проверяет, что бот правильно собрал её данные, потом менеджер в админке подтверждает, что товар реально есть на складе. Только после второго шага меняются остатки.
-
-## Веб-админка
-
-Доступна на `:8000/admin/` под HTTP Basic Auth. Возможности:
-
-- Просмотр заказов и броней, смена статусов (новое / подтверждено / в работе / отменено).
-- Полное редактирование товаров — название, цена, остаток, синонимы, описание, артикул, PV.
-- Управление FAQ — добавить, отредактировать, удалить.
-- Импорт каталога из CSV в трёх режимах: preview, insert-only, upsert.
-
-## Стек
-
-- Python 3.12, асинхронный.
-- `aiogram 3` — Telegram-бот через long polling.
-- `FastAPI` + `Jinja2` — веб-админка, в одном процессе с ботом.
-- `SQLAlchemy 2.0` + `aiosqlite` — БД. По умолчанию SQLite; переключается на PostgreSQL заменой `DATABASE_URL` (драйвер `asyncpg` уже в зависимостях).
-- `rapidfuzz` — нечёткий поиск товаров и FAQ.
-- `OpenAI SDK` через OpenRouter / ProxyAPI / любой OpenAI-совместимый шлюз — LLM для классификации интента и извлечения позиций из свободного текста.
-
-## Как устроена обработка сообщения
+## How a message is processed
 
 ```
-Клиент пишет в Telegram
-        |
-        v
-1. Быстрые проверки без LLM:
-   - триггерные слова ("заказать", "бронь", "менеджер")
-   - прямое совпадение с товаром
-   - FAQ по rapidfuzz
-        |
-        v
-2. Если не зашло: LLM-классификатор
-   возвращает JSON: { intent, items[], reserve_until, faq_intent, product_query }
-        |
-        v
-3. Маршрут по intent:
-   - FAQ      -> ответ из БД
-   - product  -> поиск, карточка или список вариантов
-   - order    -> FSM-диалог
-   - resv     -> создание брони сразу из распарсенных items, либо FSM
+message
+  │
+  ├─ 1. cheap checks, no LLM: trigger words, exact product match, fuzzy FAQ match
+  │
+  ├─ 2. otherwise → LLM classifier → JSON { intent, items[], reserve_until, faq_intent, product_query }
+  │
+  └─ 3. route by intent: FAQ answer · product search · order dialog · reservation
 ```
 
-LLM-вызов обвязан таймаутом, отключёнными ретраями SDK, circuit breaker (открывается после 5 фейлов) и heuristic-фоллбэком — если провайдер недоступен, бот молча падает в правила и продолжает работать, только без понимания свободных формулировок.
+The LLM call is wrapped in a timeout, SDK retries are disabled, and a circuit breaker opens after N consecutive
+failures. If the provider is down, the bot keeps working on rules only.
+The LLM client works with any OpenAI-compatible endpoint (OpenAI, OpenRouter, ProxyAPI, …).
 
-## Запуск локально
+## Stack
 
-```bash
-cd greenleaf_bot_project_v2
-cp .env.example .env
-# заполнить BOT_TOKEN, OPENAI_API_KEY, ADMIN_PASSWORD
-python3.12 -m venv .venv
-source .venv/bin/activate
+| Area | Tools |
+|---|---|
+| Runtime | Python 3.12, asyncio |
+| Bot | aiogram 3 (long polling) |
+| Admin panel | FastAPI + Jinja2, served in the same process as the bot |
+| Database | SQLAlchemy 2.0 — SQLite by default, PostgreSQL with `pg_trgm` indexes |
+| Matching | rapidfuzz — fuzzy product and FAQ matching |
+| LLM | OpenAI SDK — intent classification and item extraction |
+| Ops | pytest, GitHub Actions, Docker Compose |
+
+## Run locally
+
+```sh
+cp .env.example .env          # set BOT_TOKEN, OPENAI_API_KEY, ADMIN_PASSWORD
+python3.12 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 python -m app.main
 ```
 
-После запуска:
+- Admin panel: http://localhost:8000/admin/
+- Health check: http://localhost:8000/health
 
-- Бот отвечает в Telegram на токен из `BOT_TOKEN`.
-- Админка — `http://localhost:8000/admin/`.
-- Health — `http://localhost:8000/health`.
+Or with Docker:
 
-## Запуск через Docker
-
-В проекте есть `Dockerfile` и `docker-compose.yml`. Поднимается одной командой:
-
-```bash
-cd greenleaf_bot_project_v2
+```sh
 cp .env.example .env
 docker compose up -d
 ```
 
-Контейнер с `restart: unless-stopped`, при падении или ребуте хоста поднимется сам. Код подмонтирован в контейнер как volume — для обновления достаточно `git pull && docker compose restart`. Если меняли `.env`, нужно полностью пересоздать контейнер: `docker compose down && docker compose up -d`.
+## Configuration
 
-## Настройка `.env`
+| Variable | Purpose |
+|---|---|
+| `BOT_TOKEN` | Telegram bot token |
+| `OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_MODEL` | Any OpenAI-compatible provider |
+| `ADMIN_USERNAME`, `ADMIN_PASSWORD` | Admin panel login |
+| `DATABASE_URL` | SQLite by default; set a PostgreSQL URL to switch |
+| `LLM_TIMEOUT_SECONDS`, `LLM_RETRIES` | Per-request timeout and retries |
+| `LLM_CIRCUIT_FAIL_THRESHOLD`, `LLM_CIRCUIT_OPEN_SECONDS` | Circuit breaker |
+| `PARTNER_PRICE_MULTIPLIER` | Retail price = partner price × multiplier |
 
-Минимально:
+## CSV import
 
-```
-BOT_TOKEN=<токен от @BotFather>
-BOT_USERNAME=<имя бота без @>
-OPENAI_API_KEY=<ключ от OpenAI-совместимого провайдера>
-OPENAI_BASE_URL=https://api.proxyapi.ru/openai/v1
-OPENAI_MODEL=gpt-4o-mini
-ADMIN_USERNAME=admin
-ADMIN_PASSWORD=<свой пароль>
-```
+Semicolon-separated UTF-8 files. Column headers can be in English or Russian:
+`name`, `price_partner`, `quantity`, `pv`, `category`, `aliases`, `description`, `sku`.
+Numbers like `1 200,50` are parsed correctly.
 
-`OPENAI_BASE_URL` подменяется на любой OpenAI-совместимый шлюз — OpenRouter, ProxyAPI, Yandex Cloud (с поправкой на модель) и т.д. Это сделано, чтобы можно было переключать провайдера без правки кода (актуально для российских пользователей: OpenRouter не принимает рублёвые карты, ProxyAPI принимает).
+## Tests
 
-Дополнительные переменные с разумными дефолтами:
-
-```
-LLM_TIMEOUT_SECONDS=7              # таймаут одного LLM-запроса
-LLM_RETRIES=0                       # повторов в нашем коде (SDK тоже отключены)
-LLM_CIRCUIT_FAIL_THRESHOLD=5        # после скольких фейлов отключаем LLM
-LLM_CIRCUIT_OPEN_SECONDS=60         # на сколько секунд
-PARTNER_PRICE_MULTIPLIER=2          # коэффициент для обычной цены от партнёрской
+```sh
+pytest
 ```
 
-## Импорт товаров из CSV
+The tests cover CSV parsing and import, product search, order logic, and LLM fallback behaviour.
 
-`/admin/products` → форма «Импорт CSV». Режимы:
-
-- **preview** — сухой прогон, ничего не пишет, отчитывается о том, что бы изменилось.
-- **insert-only** — добавляет только новые товары (сопоставление по SKU, затем по имени).
-- **upsert** — добавляет новые и обновляет существующие.
-
-Формат файла: разделитель `;`, кодировка UTF-8. Заголовки могут быть на русском или английском (`name/Название`, `price_partner/Цена`, `quantity/Количество`, `pv/PV`, `category/Категория`, `aliases/Синонимы`, `description/Описание`, `sku/Артикул`). Числа понимаются с пробелами и запятыми: `1 200,50` распарсится как `1200.5`.
-
-Каждый импорт пишется в таблицу `import_logs` — кто, когда, какой файл, сколько добавлено, обновлено, пропущено, ошибок.
-
-## Развёртывание
-
-Проект развёрнут на VPS Ubuntu 24.04, бот работает через Docker. Шаг обновления после `git push`:
-
-```bash
-ssh root@<server>
-cd /root/GreenLeaf_Assistant && git pull
-cd greenleaf_bot_project_v2 && docker compose restart
-```
-
-Если менялся `.env` — пересоздать контейнер:
-
-```bash
-docker compose down && docker compose up -d
-```
-
-`docker compose restart` без `down/up` не перечитывает `env_file`, имейте в виду.
-
-## Что не реализовано и почему
-
-- **Менеджерские кнопки прямо в Telegram-чате.** В коде есть инфраструктура (`MANAGER_CHAT_ID`, callback-обработчики), но не активирована, потому что у заказчика менеджеры сидят в общем клиентском чате — кнопки «подтвердить заказ» там не могут быть публичными. Заработает, как только магазин создаст отдельный чат менеджеров и пропишет его ID в `.env`.
-- **Списание остатков по подтверждению клиента.** Сознательно не делаем — клиент может ошибиться или передумать, остатки не должны зависеть от его настроения. Только менеджер в админке инициирует резерв.
-- **HTTPS для админки.** Для дипломного проекта работает HTTP с Basic Auth. В продакшене нужен nginx + Let's Encrypt.
-- **Миграции (Alembic и т.п.).** Не подключены — схема создаётся через `Base.metadata.create_all`, БД небольшая, схема стабилизировалась. При серьёзном расширении схемы — стоит завести миграции.
-
-## Структура каталога
+## Project layout
 
 ```
-greenleaf_bot_project_v2/
-├── app/
-│   ├── bot/             # aiogram-обработчики, FSM, клавиатуры
-│   ├── db/              # модели SQLAlchemy, инициализация, сид
-│   ├── services/        # бизнес-логика: заказы, поиск, LLM, FAQ, импорт CSV
-│   ├── templates/       # Jinja-шаблоны админки
-│   ├── config.py        # настройки через pydantic-settings
-│   ├── main.py          # FastAPI + lifespan, запуск бота параллельно
-│   └── web_admin.py     # роуты админки
-├── Dockerfile
-├── docker-compose.yml
-├── requirements.txt
-└── .env.example
+app/
+├── bot/         # aiogram handlers, FSM states, keyboards
+├── db/          # SQLAlchemy models, session, demo seed data
+├── services/    # orders, product search, LLM client, FAQ, CSV import
+├── templates/   # admin panel templates
+├── config.py    # settings (pydantic-settings)
+├── main.py      # FastAPI app + bot startup
+└── web_admin.py # admin routes
 ```
+
+## Known limitations
+
+- **Manager buttons inside Telegram.** The code exists but is disabled: it needs a separate manager chat.
+- **Database migrations.** None; the schema is created with `create_all`.
+- **HTTPS.** The admin panel should sit behind a reverse proxy with HTTPS in production.
